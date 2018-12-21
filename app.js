@@ -29,8 +29,25 @@ var uiController = (function() {
 
 // appController module
 var controller = (function(budgetCtrl, uiCtrl) {
-  // Get access to DOMStrings object from UI controller
-  var DOM = uiCtrl.getDOMStrings();
+  // Event Listeners
+  var setupEventListeners = () => {
+    // Get access to DOMStrings object from UI controller
+    var DOM = uiCtrl.getDOMStrings();
+
+    // Event handler for click
+    document.querySelector(DOM.inputBtn).addEventListener("click", function() {
+      console.log("add clicked");
+      ctrlAddItem();
+    });
+
+    // Event handler for ENTER key (if the user presses enter to submit rather than clicking button)
+    document.addEventListener("keypress", function(e) {
+      if (e.keyCode === 13 || e.which === 13) {
+        console.log("ENTER pressed.");
+        ctrlAddItem();
+      }
+    });
+  };
 
   // Add Item function
   var ctrlAddItem = function() {
@@ -44,17 +61,15 @@ var controller = (function(budgetCtrl, uiCtrl) {
     // Display budget on UI
   };
 
-  // Event handler for click
-  document.querySelector(DOM.inputBtn).addEventListener("click", function() {
-    console.log("add clicked");
-    ctrlAddItem();
-  });
-
-  // Event handler for ENTER key (if the user presses enter to submit rather than clicking button)
-  document.addEventListener("keypress", function(e) {
-    if (e.keyCode === 13 || e.which === 13) {
-      console.log("ENTER pressed.");
-      ctrlAddItem();
+  // Create public initialization function
+  return {
+    init: () => {
+      // Event listeners will be set up as soon as init is called
+      console.log("App started");
+      setupEventListeners();
     }
-  });
+  };
 })(budgetController, uiController);
+
+// Initialize controller w/ event listeners
+controller.init();
