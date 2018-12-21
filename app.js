@@ -1,5 +1,30 @@
 // budgetController module
-var budgetController = (function() {})();
+var budgetController = (function() {
+  // Expense function constructor
+  var Expense = function(id, description, value) {
+    this.id = id;
+    this.description = description;
+    this.value = value;
+  };
+
+  // Income function constructor
+  var Income = function(id, description, value) {
+    this.id = id;
+    this.description = description;
+    this.value = value;
+  };
+
+  var data = {
+    allItems: {
+      exp: [],
+      inc: []
+    },
+    totals: {
+      exp: 0,
+      inc: 0
+    }
+  };
+})();
 
 // uiController module. IIFE so this function is automatically called, giving us access to all of its methods that we're returning
 var uiController = (function() {
