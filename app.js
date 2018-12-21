@@ -24,6 +24,43 @@ var budgetController = (function() {
       inc: 0
     }
   };
+
+  // Creating public methods
+  return {
+    // Add items to data.allItems
+    addItem: (type, description, value) => {
+      var newItem, ID;
+
+      // If there are items in the array
+      if (data.allItems[type].length > 0) {
+        // Selecting last item's id of the exp or inc array, then creating a new id by adding 1 to the most recent id number
+        // Create new ID
+        ID = data.allItems[type][data.allItems[type].length - 1].id + 1;
+      } else {
+        // Set ID = 0
+        ID = 0;
+      }
+
+      // Create new item based on inc or exp type
+      switch (type) {
+        case "exp":
+          newItem = new Expense(ID, description, value);
+          break;
+        case "inc":
+          newItem = new Income(ID, description, value);
+          break;
+        default:
+          null;
+      }
+
+      // Push item into data structure
+      data.allItems[type].push(newItem);
+
+      // Return new item
+      return newItem;
+    },
+    testing: () => console.log("data", data)
+  };
 })();
 
 // uiController module. IIFE so this function is automatically called, giving us access to all of its methods that we're returning
@@ -76,11 +113,12 @@ var controller = (function(budgetCtrl, uiCtrl) {
 
   // Add Item function
   var ctrlAddItem = function() {
-    console.log("ctrlAddItem ran.");
+    var input, newItem;
     // Get input
-    var input = uiCtrl.getInput();
-    console.log("input:", input);
+    input = uiCtrl.getInput();
     // Add item to budget controller
+    // const { type, description, value } = input;
+    newItem = budgetCtrl.addItem(input.type, input.description, input.value);
     // Add item to UI
     // Calculate Budget
     // Display budget on UI
