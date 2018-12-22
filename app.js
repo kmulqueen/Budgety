@@ -113,7 +113,11 @@ const uiController = (() => {
     inputValue: ".add__value",
     inputBtn: ".add__btn",
     incomeContainer: ".income__list",
-    expensesContainer: ".expenses__list"
+    expensesContainer: ".expenses__list",
+    budgetLabel: ".budget__value",
+    incomeLabel: ".budget__income--value",
+    expenseLabel: ".budget__expenses--value",
+    percentageLabel: ".budget__expenses--percentage"
   };
 
   return {
@@ -169,6 +173,19 @@ const uiController = (() => {
       // After a user submits the data, the text input indicator goes back into the description field, rather than staying in the last clicked field
       fieldsArr[0].focus();
     },
+    displayBudget: obj => {
+      document.querySelector(DOMStrings.budgetLabel).textContent = obj.budget;
+      document.querySelector(DOMStrings.incomeLabel).textContent = obj.totalInc;
+      document.querySelector(DOMStrings.expenseLabel).textContent =
+        obj.totalExp;
+
+      if (obj.percentage > 0) {
+        document.querySelector(DOMStrings.percentageLabel).textContent =
+          obj.percentage + "%";
+      } else {
+        document.querySelector(DOMStrings.percentageLabel).textContent = "---";
+      }
+    },
     // Return the DOMStrings object to make it publicly available through other controllers
     getDOMStrings: () => {
       return DOMStrings;
@@ -203,7 +220,7 @@ const controller = ((budgetCtrl, uiCtrl) => {
     // Return budget
     var budget = budgetCtrl.getBudget();
     // Display budget on UI
-    console.log(budget);
+    uiCtrl.displayBudget(budget);
   };
 
   // Add Item function
@@ -228,8 +245,14 @@ const controller = ((budgetCtrl, uiCtrl) => {
   return {
     init: () => {
       // Event listeners will be set up as soon as init is called
-      console.log("App started");
       setupEventListeners();
+      // Display budget on UI
+      uiCtrl.displayBudget({
+        budget: 0,
+        totalInc: 0,
+        totalExp: 0,
+        percentage: -1
+      });
     }
   };
 })(budgetController, uiController);
