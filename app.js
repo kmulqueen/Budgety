@@ -1,6 +1,6 @@
 // budgetController module
-var budgetController = (function() {
-  // Expense function constructor
+const budgetController = (() => {
+  // Expense function constructor. Arrow functions can't be used as constructors
   var Expense = function(id, description, value) {
     this.id = id;
     this.description = description;
@@ -14,6 +14,20 @@ var budgetController = (function() {
     this.value = value;
   };
 
+  // Calculate total
+  var calculateTotal = type => {
+    // Initial sum
+    var sum = 0;
+
+    // For each iteration, the sum will be updated
+    data.allItems[type].forEach(item => {
+      sum += item.value;
+    });
+
+    // Update the totals value to the final sum
+    data.totals[type] = sum;
+  };
+
   var data = {
     allItems: {
       exp: [],
@@ -22,7 +36,9 @@ var budgetController = (function() {
     totals: {
       exp: 0,
       inc: 0
-    }
+    },
+    budget: 0,
+    percentage: -1
   };
 
   // Creating public methods
@@ -59,12 +75,37 @@ var budgetController = (function() {
       // Return new item
       return newItem;
     },
+    // Calculate budget
+    calculateBudget: () => {
+      // Calculate total income & expenses
+      calculateTotal("exp");
+      calculateTotal("inc");
+      // Calculate the budget: income - expenses
+      data.budget = data.totals.inc - data.totals.exp;
+      // Caulculate % of income spent (if any income exists)
+      if (data.totals.inc > 0) {
+        data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
+      } else {
+        // Percentage doesn't exist
+        data.percentage = -1;
+      }
+    },
+    // Get Budget. Returns budget
+    getBudget: () => {
+      const { budget, totals, percentage } = data;
+      return {
+        budget,
+        totalInc: totals.inc,
+        totalExp: totals.exp,
+        percentage
+      };
+    },
     testing: () => console.log("data", data)
   };
 })();
 
 // uiController module. IIFE so this function is automatically called, giving us access to all of its methods that we're returning
-var uiController = (function() {
+const uiController = (() => {
   // Object that holds our DOM classes for queryselector, that way if we need to change them, we just need to do it once rather than hunting the rest down to change
   var DOMStrings = {
     inputType: ".add__type",
@@ -77,11 +118,11 @@ var uiController = (function() {
 
   return {
     // Get input from selected elements and return them in an object
-    getInput: function() {
+    getInput: () => {
       return {
         type: document.querySelector(DOMStrings.inputType).value,
         description: document.querySelector(DOMStrings.inputDesc).value,
-        value: document.querySelector(DOMStrings.inputValue).value
+        value: parseFloat(document.querySelector(DOMStrings.inputValue).value) // parseFloat turns the string into a number
       };
     },
     addListItem: (obj, type) => {
@@ -129,14 +170,14 @@ var uiController = (function() {
       fieldsArr[0].focus();
     },
     // Return the DOMStrings object to make it publicly available through other controllers
-    getDOMStrings: function() {
+    getDOMStrings: () => {
       return DOMStrings;
     }
   };
 })();
 
 // appController module
-var controller = (function(budgetCtrl, uiCtrl) {
+const controller = ((budgetCtrl, uiCtrl) => {
   // Event Listeners
   var setupEventListeners = () => {
     // Get access to DOMStrings object from UI controller
@@ -144,33 +185,43 @@ var controller = (function(budgetCtrl, uiCtrl) {
 
     // Event handler for click
     document.querySelector(DOM.inputBtn).addEventListener("click", function() {
-      console.log("add clicked");
       ctrlAddItem();
     });
 
     // Event handler for ENTER key (if the user presses enter to submit rather than clicking button)
     document.addEventListener("keypress", function(e) {
       if (e.keyCode === 13 || e.which === 13) {
-        console.log("ENTER pressed.");
         ctrlAddItem();
       }
     });
   };
 
+  // Update budget function
+  const updateBudget = () => {
+    // Calculate budget
+    budgetCtrl.calculateBudget();
+    // Return budget
+    var budget = budgetCtrl.getBudget();
+    // Display budget on UI
+    console.log(budget);
+  };
+
   // Add Item function
-  var ctrlAddItem = function() {
+  const ctrlAddItem = () => {
     var input, newItem;
     // Get input
     input = uiCtrl.getInput();
-    // Add item to budget controller
-    // const { type, description, value } = input;
-    newItem = budgetCtrl.addItem(input.type, input.description, input.value);
-    // Add item to UI
-    uiCtrl.addListItem(newItem, input.type);
-    // Clear text fields
-    uiCtrl.clearFields();
-    // Calculate Budget
-    // Display budget on UI
+    // If the fields are filled out
+    if (input.description !== "" && !isNaN(input.value) && input.value > 0) {
+      // Add item to budget controller
+      newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+      // Add item to UI
+      uiCtrl.addListItem(newItem, input.type);
+      // Clear text fields
+      uiCtrl.clearFields();
+      // Calculate & update budget
+      updateBudget();
+    }
   };
 
   // Create public initialization function
