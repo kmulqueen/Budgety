@@ -108,6 +108,26 @@ var uiController = (function() {
       // Insert HTML into the DOM
       document.querySelector(element).insertAdjacentHTML("beforeend", newHtml);
     },
+    // Clear text input fields
+    clearFields: () => {
+      var fields, fieldsArr;
+
+      // Holds values for HTML text input fields. querySelectorAll returns *list*, NOT an arry
+      fields = document.querySelectorAll(
+        `${DOMStrings.inputDesc}, ${DOMStrings.inputValue}`
+      );
+
+      // **Tricking slice method** Converting the list into an array. Slice returns a copy of the "array" (which is a list, but still gets returned as an array by the slice method)
+      fieldsArr = Array.prototype.slice.call(fields);
+
+      // Clear value of each field
+      fieldsArr.forEach(field => {
+        field.value = "";
+      });
+
+      // After a user submits the data, the text input indicator goes back into the description field, rather than staying in the last clicked field
+      fieldsArr[0].focus();
+    },
     // Return the DOMStrings object to make it publicly available through other controllers
     getDOMStrings: function() {
       return DOMStrings;
@@ -147,6 +167,8 @@ var controller = (function(budgetCtrl, uiCtrl) {
     newItem = budgetCtrl.addItem(input.type, input.description, input.value);
     // Add item to UI
     uiCtrl.addListItem(newItem, input.type);
+    // Clear text fields
+    uiCtrl.clearFields();
     // Calculate Budget
     // Display budget on UI
   };
