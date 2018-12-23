@@ -5,6 +5,22 @@ const budgetController = (() => {
     this.id = id;
     this.description = description;
     this.value = value;
+    this.percentage = -1;
+  };
+
+  // Prototypes
+  // Calc percentage
+  Expense.prototype.calcPercentage = totalIncome => {
+    if (totalIncome > 0) {
+      this.percentage = Math.round((this.value / totalIncome) * 100);
+    } else {
+      this.percentage = -1;
+    }
+  };
+
+  // Get/return percentage
+  Expense.prototype.getPercentage = () => {
+    return this.percentage;
   };
 
   // Income function constructor
@@ -104,6 +120,12 @@ const budgetController = (() => {
         data.percentage = -1;
       }
     },
+    // Calculate percentages
+    calculatePercentages: () => {
+      data.allItems.exp.forEach(item => {
+        item.calcPercentage(data.totals.inc);
+      });
+    },
     // Get Budget. Returns budget
     getBudget: () => {
       const { budget, totals, percentage } = data;
@@ -113,6 +135,13 @@ const budgetController = (() => {
         totalExp: totals.exp,
         percentage
       };
+    },
+    // Get percentages
+    getPercentages: () => {
+      var allPercentages = data.allItems.exp.map(item => {
+        return item.getPercentage();
+      });
+      return allPercentages;
     },
     testing: () => console.log("data", data)
   };
@@ -132,7 +161,8 @@ const uiController = (() => {
     incomeLabel: ".budget__income--value",
     expenseLabel: ".budget__expenses--value",
     percentageLabel: ".budget__expenses--percentage",
-    container: ".container"
+    container: ".container",
+    expPercLabel: ".item__percentage"
   };
 
   return {
@@ -208,6 +238,26 @@ const uiController = (() => {
         document.querySelector(DOMStrings.percentageLabel).textContent = "---";
       }
     },
+    displayPercentages: percentages => {
+      var fields;
+
+      fields = document.querySelectorAll(DOMStrings.expPercLabel);
+      // Creating a forEach method for our nodeLists
+      var nodeListForEach = (list, cbfunc) => {
+        for (var i = 0; i < list.length; i++) {
+          cbfunc(list[i], i);
+        }
+      };
+
+      // Calling the method
+      nodeListForEach(fields, (item, index) => {
+        if (percentages[index] > 0) {
+          item.textContent = percentages[index] + "%";
+        } else {
+          item.textContent = "---";
+        }
+      });
+    },
     // Return the DOMStrings object to make it publicly available through other controllers
     getDOMStrings: () => {
       return DOMStrings;
@@ -249,6 +299,16 @@ const controller = ((budgetCtrl, uiCtrl) => {
     uiCtrl.displayBudget(budget);
   };
 
+  // Update percentages function
+  const updatePercentages = () => {
+    // calculate percentages
+    budgetCtrl.calculatePercentages();
+    // read them from budget controller
+    var percentages = budgetCtrl.getPercentages();
+    // update ui
+    uiCtrl.displayPercentages(percentages);
+  };
+
   // Add Item function
   const ctrlAddItem = () => {
     var input, newItem;
@@ -264,6 +324,8 @@ const controller = ((budgetCtrl, uiCtrl) => {
       uiCtrl.clearFields();
       // Calculate & update budget
       updateBudget();
+      // Calculate & update percentages
+      updatePercentages();
     }
   };
 
@@ -272,6 +334,7 @@ const controller = ((budgetCtrl, uiCtrl) => {
     var itemID, splitID, type, ID;
     // Reaching the parent element of where our icon/button is
     itemID = e.target.parentNode.parentNode.parentNode.parentNode.id;
+
     if (itemID) {
       // Converting the string data ("inc-1", "exp-4", etc.) into an array to get access to the type & id
       splitID = itemID.split("-");
@@ -284,6 +347,8 @@ const controller = ((budgetCtrl, uiCtrl) => {
       uiCtrl.deleteListItem(itemID);
       // Update & show new budget
       updateBudget();
+      // Calculate & update percentages
+      updatePercentages();
     }
   };
 
