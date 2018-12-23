@@ -168,6 +168,13 @@ const uiController = (() => {
       // Insert HTML into the DOM
       document.querySelector(element).insertAdjacentHTML("beforeend", newHtml);
     },
+    // Delete list item
+    deleteListItem: id => {
+      // Move up in the DOM to access the child element
+      var element = document.getElementById(id);
+      // Remove the child element
+      element.parentNode.removeChild(element);
+    },
     // Clear text input fields
     clearFields: () => {
       var fields, fieldsArr;
@@ -274,8 +281,9 @@ const controller = ((budgetCtrl, uiCtrl) => {
       // Delete item from data structure
       budgetCtrl.deleteItem(type, ID);
       // Delete item from ui
-
+      uiCtrl.deleteListItem(itemID);
       // Update & show new budget
+      updateBudget();
     }
   };
 
